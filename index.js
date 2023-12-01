@@ -50,43 +50,43 @@ function decodeScreepsMemory(encodedData) {
 }
 
 function formatForPrometheus(data) {
-    let metrics = [];
+    let stats = [];
 
     // Formatting GCL data
     if (data.gcl) {
-        metrics.push(`screeps_gcl_progress{level="${data.gcl.level}"} ${data.gcl.progress}`);
-        metrics.push(`screeps_gcl_progress_total{level="${data.gcl.level}"} ${data.gcl.progressTotal}`);
+        stats.push(`screeps_gcl_progress{level="${data.gcl.level}"} ${data.gcl.progress}`);
+        stats.push(`screeps_gcl_progress_total{level="${data.gcl.level}"} ${data.gcl.progressTotal}`);
     }
 
     // Formatting Room data
     if (data.rooms) {
         for (const [roomName, roomData] of Object.entries(data.rooms)) {
-            metrics.push(`screeps_room_storage_energy{room="${roomName}"} ${roomData.storageEnergy}`);
-            metrics.push(`screeps_room_terminal_energy{room="${roomName}"} ${roomData.terminalEnergy}`);
-            metrics.push(`screeps_room_energy_available{room="${roomName}"} ${roomData.energyAvailable}`);
-            metrics.push(`screeps_room_energy_capacity_available{room="${roomName}"} ${roomData.energyCapacityAvailable}`);
-            metrics.push(`screeps_room_controller_progress{room="${roomName}"} ${roomData.controllerProgress}`);
-            metrics.push(`screeps_room_controller_progress_total{room="${roomName}"} ${roomData.controllerProgressTotal}`);
-            metrics.push(`screeps_room_controller_level{room="${roomName}"} ${roomData.controllerLevel}`);
+            stats.push(`screeps_room_storage_energy{room="${roomName}"} ${roomData.storageEnergy}`);
+            stats.push(`screeps_room_terminal_energy{room="${roomName}"} ${roomData.terminalEnergy}`);
+            stats.push(`screeps_room_energy_available{room="${roomName}"} ${roomData.energyAvailable}`);
+            stats.push(`screeps_room_energy_capacity_available{room="${roomName}"} ${roomData.energyCapacityAvailable}`);
+            stats.push(`screeps_room_controller_progress{room="${roomName}"} ${roomData.controllerProgress}`);
+            stats.push(`screeps_room_controller_progress_total{room="${roomName}"} ${roomData.controllerProgressTotal}`);
+            stats.push(`screeps_room_controller_level{room="${roomName}"} ${roomData.controllerLevel}`);
         }
     }
 
     // Formatting CPU data
     if (data.cpu) {
-        metrics.push(`screeps_cpu_bucket ${data.cpu.bucket}`);
-        metrics.push(`screeps_cpu_limit ${data.cpu.limit}`);
-        metrics.push(`screeps_cpu_used ${data.cpu.used}`);
+        stats.push(`screeps_cpu_bucket ${data.cpu.bucket}`);
+        stats.push(`screeps_cpu_limit ${data.cpu.limit}`);
+        stats.push(`screeps_cpu_used ${data.cpu.used}`);
     }
 
     // Formatting Time data
     if (data.time) {
-        metrics.push(`screeps_time ${data.time}`);
+        stats.push(`screeps_time ${data.time}`);
     }
 
-    return metrics.join('\n');
+    return stats.join('\n');
 }
 
-app.get('/metrics', async (req, res) => {
+app.get('/stats', async (req, res) => {
     const apiUrl = "https://screeps.com/api/user/memory?shard=shard3&path=stats";
     const token = process.env.SCREEPS_TOKEN;
 
@@ -95,8 +95,8 @@ app.get('/metrics', async (req, res) => {
         const decodedMemory = decodeScreepsMemory(encodedMemory);
         if (decodedMemory) {
             // res.type('text/plain').send(decodedMemory);
-            const formattedMetrics = formatForPrometheus(decodedMemory);
-            res.type('text/plain').send(formattedMetrics);
+            const formattedStats = formatForPrometheus(decodedMemory);
+            res.type('text/plain').send(formattedStats);
         } else {
             res.status(500).send('Error processing data');
         }
