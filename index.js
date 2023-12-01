@@ -108,3 +108,5 @@ app.get('/metrics', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Screeps Exporter running on http://localhost:${PORT}`);
 });
+
+module.exports = app;
