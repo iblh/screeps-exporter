@@ -86,7 +86,7 @@ function formatForPrometheus(data) {
     return stats.join('\n');
 }
 
-app.get('/stats', async (req, res) => {
+app.get('/', async (req, res) => {
     const apiUrl = "https://screeps.com/api/user/memory?shard=shard3&path=stats";
     const token = process.env.SCREEPS_TOKEN;
 
