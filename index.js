@@ -52,15 +52,38 @@ function decodeScreepsMemory(encodedData) {
 function formatForPrometheus(data) {
     let metrics = [];
 
-    // Formatting GCL data
-    if (data.gcl) {
-        metrics.push(`screeps_gcl_progress{level="${data.gcl.level}"} ${data.gcl.progress}`);
-        metrics.push(`screeps_gcl_progress_total{level="${data.gcl.level}"} ${data.gcl.progressTotal}`);
+    // GCL Metrics
+    if (data.stats.gcl) {
+        metrics.push(`screeps_gcl_level ${data.stats.gcl.level}`);
+        metrics.push(`screeps_gcl_progress ${data.stats.gcl.progress}`);
+        metrics.push(`screeps_gcl_progress_total ${data.stats.gcl.progressTotal}`);
+        metrics.push(`screeps_gcl_tickDuration ${data.stats.gcl.tickDuration}`);
     }
 
-    // Formatting Room data
-    if (data.rooms) {
-        for (const [roomName, roomData] of Object.entries(data.rooms)) {
+    // Creeper Metrics
+    if (data.creeps) {
+        // count total number of creeps
+        metrics.push(`screeps_creep_count ${Object.keys(data.creeps).length}`);
+
+        let creepRoles = {};
+
+        for (const [creepName, creepData] of Object.entries(data.creeps)) {
+            // creepData.role
+            // if role is in creepRoles, increment count
+            if (creepData.role in creepRoles) {
+                creepRoles[creepData.role] += 1;
+            } else {
+                creepRoles[creepData.role] = 1;
+            }
+        }
+        for (const [roleName, roleCount] of Object.entries(creepRoles)) {
+            metrics.push(`screeps_creep_role_count{role="${roleName}"} ${roleCount}`);
+        }
+    }
+
+    // Room Metrics
+    if (data.stats.rooms) {
+        for (const [roomName, roomData] of Object.entries(data.stats.rooms)) {
             metrics.push(`screeps_room_storage_energy{room="${roomName}"} ${roomData.storageEnergy}`);
             metrics.push(`screeps_room_terminal_energy{room="${roomName}"} ${roomData.terminalEnergy}`);
             metrics.push(`screeps_room_energy_available{room="${roomName}"} ${roomData.energyAvailable}`);
@@ -71,23 +94,24 @@ function formatForPrometheus(data) {
         }
     }
 
-    // Formatting CPU data
-    if (data.cpu) {
-        metrics.push(`screeps_cpu_bucket ${data.cpu.bucket}`);
-        metrics.push(`screeps_cpu_limit ${data.cpu.limit}`);
-        metrics.push(`screeps_cpu_used ${data.cpu.used}`);
+    // CPU Metrics
+    if (data.stats.cpu) {
+        metrics.push(`screeps_cpu_bucket ${data.stats.cpu.bucket}`);
+        metrics.push(`screeps_cpu_limit ${data.stats.cpu.limit}`);
+        metrics.push(`screeps_cpu_used ${data.stats.cpu.used}`);
     }
 
-    // Formatting Time data
-    if (data.time) {
-        metrics.push(`screeps_time ${data.time}`);
+    // Time Metric
+    if (data.stats.time) {
+        metrics.push(`screeps_time ${data.stats.time}`);
     }
 
     return metrics.join('\n');
 }
 
+
 app.get('/metrics', async (req, res) => {
-    const apiUrl = "https://screeps.com/api/user/memory?shard=shard3&path=stats";
+    const apiUrl = "https://screeps.com/api/user/memory?shard=shard3";
     const token = process.env.SCREEPS_TOKEN;
 
     const encodedMemory = await getScreepsMemory(apiUrl, token);
