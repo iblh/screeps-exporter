@@ -57,7 +57,7 @@ function formatForPrometheus(data) {
         metrics.push(`screeps_gcl_level ${data.stats.gcl.level}`);
         metrics.push(`screeps_gcl_progress ${data.stats.gcl.progress}`);
         metrics.push(`screeps_gcl_progress_total ${data.stats.gcl.progressTotal}`);
-        metrics.push(`screeps_gcl_tickDuration ${data.stats.gcl.tickDuration}`);
+        metrics.push(`screeps_gcl_tick_duration ${data.stats.gcl.tickDuration}`);
     }
 
     // Creeper Metrics
@@ -65,19 +65,28 @@ function formatForPrometheus(data) {
         // count total number of creeps
         metrics.push(`screeps_creep_count ${Object.keys(data.creeps).length}`);
 
-        let creepRoles = {};
+        let creepCount = {};
+        // {room: {role: count}}
 
         for (const [creepName, creepData] of Object.entries(data.creeps)) {
-            // creepData.role
-            // if role is in creepRoles, increment count
-            if (creepData.role in creepRoles) {
-                creepRoles[creepData.role] += 1;
-            } else {
-                creepRoles[creepData.role] = 1;
+            const roomName = creepData.room;
+            const roleName = creepData.role;
+
+            if (!creepCount[roomName]) {
+                creepCount[roomName] = {};
             }
+
+            if (!creepCount[roomName][roleName]) {
+                creepCount[roomName][roleName] = 0;
+            }
+
+            creepCount[roomName][roleName]++;
         }
-        for (const [roleName, roleCount] of Object.entries(creepRoles)) {
-            metrics.push(`screeps_creep_role_count{role="${roleName}"} ${roleCount}`);
+
+        for (const [roomName, roomData] of Object.entries(creepCount)) {
+            for (const [roleName, count] of Object.entries(roomData)) {
+                metrics.push(`screeps_creep_count{room="${roomName}",role="${roleName}"} ${count}`);
+            }
         }
     }
 
