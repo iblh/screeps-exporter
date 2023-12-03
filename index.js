@@ -85,7 +85,7 @@ function formatForPrometheus(data) {
 
         for (const [roomName, roomData] of Object.entries(creepCount)) {
             for (const [roleName, count] of Object.entries(roomData)) {
-                metrics.push(`screeps_creep_count{room="${roomName}",role="${roleName}"} ${count}`);
+                metrics.push(`screeps_creep_detail_count{room="${roomName}",role="${roleName}"} ${count}`);
             }
         }
     }
